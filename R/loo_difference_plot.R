@@ -34,33 +34,8 @@
 #' library(loo)
 #' 
 #' cbPalette <- c("#636363", "#E69F00", "#56B4E9", "#009E73", 
-#'                "#F0E442", "#0072B2","#CC79A7")
-#' 
-#' # Plot using groups from WHO
-#' 
-#' plot_loo_dif(factor(GM@data$super_region_name), loo3, loo2, 
-#'              group = GM@data$super_region_name, alpha = .5, 
-#'              jitter = c(.45, .2)
-#'              ) + 
-#'              xlab("Region") + scale_colour_manual(values=cbPalette)
-#' 
-#' # Plot using groups identified with clustering
-#' 
-#' plot_loo_dif(factor(GM@data$cluster_region), loo3, loo2, 
-#'              group = GM@data$super_region_name, alpha = .5, 
-#'              jitter = c(.45, .2)
-#'              ) + 
-#'              xlab("Cluster Group") + scale_colour_manual(values=cbPalette)
-#'              
-#' # Plot using an index variable to reduce crowding
-#' 
-#' plot_loo_dif(1:2980, loo3, loo2, group = GM@data$super_region_name, 
-#'              alpha = .5, sort_by_group = TRUE, 
-#'              ) + 
-#'              xlab("Index") + scale_colour_manual(values=cbPalette)
-#'
-#' 
-#' # Example using kid IQ Dataset with a continuous predictor
+#'                "#F0E442", "#0072B2","#CC79A7") 
+#' # Example using kid IQ Dataset
 #'
 #' data(kidiq)
 #'
