@@ -19,7 +19,6 @@
 #'   will be over-optimistic. If the posterior draws are independent then
 #'   `r_eff=1` and can be omitted. See the [relative_eff()]
 #'   helper functions for computing `r_eff`.
-#'
 #' @param save_psis Should the `"psis"` object created internally by `loo()` be
 #'   saved in the returned object? The `loo()` function calls [psis()]
 #'   internally but by default discards the (potentially large) `"psis"` object
@@ -27,6 +26,10 @@
 #'   will add a `psis_object` component to the list returned by `loo`. Currently
 #'   this is only needed if you plan to use the [E_loo()] function to compute
 #'   weighted expectations after running `loo`.
+#' @param julia Should LOO use an implementation of PSIS in Julia to speed up
+#'   calculations? This defaults to the option `loo.julia` which can be set for
+#'   an entire R session by [`options(loo.julia = BOOL)`].Currently defaults to
+#'   `loo.julia`, and `FALSE` if `loo.julia` is not set.
 #' @template cores
 #' @template is_method
 #'
@@ -193,10 +196,19 @@ loo.array <-
            r_eff = NULL,
            save_psis = FALSE,
            cores = getOption("mc.cores", 1),
-           is_method = c("psis", "tis", "sis")) {
+           is_method = c("psis", "tis", "sis"),
+           julia = getOption("loo.julia", FALSE)) {
+
     if (is.null(r_eff)) throw_loo_r_eff_warning()
     is_method <- match.arg(is_method)
-    psis_out <- importance_sampling.array(log_ratios = -x, r_eff = r_eff, cores = cores, method = is_method)
+    psis_out <-
+      importance_sampling.array(
+        log_ratios = -x,
+        r_eff = r_eff,
+        cores = cores,
+        method = is_method,
+        julia = julia
+        )
     ll <- llarray_to_matrix(x)
     pointwise <- pointwise_loo_calcs(ll, psis_out)
     importance_sampling_loo_object(
@@ -218,7 +230,8 @@ loo.matrix <-
            r_eff = NULL,
            save_psis = FALSE,
            cores = getOption("mc.cores", 1),
-           is_method = c("psis", "tis", "sis")) {
+           is_method = c("psis", "tis", "sis"),
+           julia = getOption("loo.julia", FALSE)) {
     is_method <- match.arg(is_method)
     if (is.null(r_eff)) {
       throw_loo_r_eff_warning()
@@ -228,7 +241,8 @@ loo.matrix <-
         log_ratios = -x,
         r_eff = r_eff,
         cores = cores,
-        method = is_method
+        method = is_method,
+        julia = julia
       )
     pointwise <- pointwise_loo_calcs(x, psis_out)
     importance_sampling_loo_object(
@@ -305,6 +319,8 @@ loo.function <-
       is_object = if (save_psis) psis_out else NULL
     )
   }
+
+
 
 
 #' @description The `loo_i()` function enables testing log-likelihood
@@ -717,3 +733,4 @@ parallel_importance_sampling_list <- function(N, .loo_i, .llfun,
     }
   }
 }
+

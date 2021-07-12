@@ -89,6 +89,7 @@
 #'
 psis <- function(log_ratios, ...) UseMethod("psis")
 
+
 #' @export
 #' @templateVar fn psis
 #' @template array
@@ -96,12 +97,17 @@ psis <- function(log_ratios, ...) UseMethod("psis")
 psis.array <-
   function(log_ratios, ...,
            r_eff = NULL,
-           cores = getOption("mc.cores", 1)) {
-  importance_sampling.array(log_ratios = log_ratios, ...,
-                            r_eff = r_eff,
-                            cores = cores,
-                            method = "psis")
+           cores = getOption("mc.cores", 1),
+           julia = getOption("mc.julia", FALSE)) {
+  if (julia){
+    jul_loo_array(log_ratios, ..., r_eff, cores)
+  } else{
+    importance_sampling.array(log_ratios = log_ratios, ...,
+                              r_eff = r_eff,
+                              cores = cores,
+                              method = "psis")
   }
+}
 
 
 #' @export
@@ -112,13 +118,18 @@ psis.matrix <-
   function(log_ratios,
            ...,
            r_eff = NULL,
-           cores = getOption("mc.cores", 1)) {
-    importance_sampling.matrix(log_ratios,
-                               ...,
-                               r_eff = r_eff,
-                               cores = cores,
-                               method = "psis")
-  }
+           cores = getOption("mc.cores", 1),
+           julia = getOption("mc.julia", FALSE)
+           ) {
+    if (julia){
+      jul_loo_array(llmatrix_to_array(log_ratios), ..., r_eff, cores)
+    } else{
+      importance_sampling.array(log_ratios = log_ratios, ...,
+                                r_eff = r_eff,
+                                cores = cores,
+                                method = "psis")
+    }
+}
 
 #' @export
 #' @templateVar fn psis
@@ -142,6 +153,66 @@ is.psis <- function(x) {
 
 # internal ----------------------------------------------------------------
 
+
+#' Check that Julia has been installed and is working properly;
+#' if so, use ParetoSmooth for calculations
+#'
+#' @importFrom JuliaConnectoR juliaCall
+#'
+jul_loo_array <- function(log_ratios, r_eff, cores=getOption("mc.cores", 1)) {
+
+    # The Julia version uses a different permutation of indices:
+    if (length(dim(log_ratios)) == 3) {
+      log_ratios <- aperm(log_ratios, c(3, 1, 2))
+    } else if (length(dim(log_ratios)) == 2) {
+      log_ratios <- aperm(log_ratios, c(2, 1))
+    } else {
+      stop("Invalid array size -- arrays must have either 2 or 3 dimensions.")
+    }
+
+
+    # Julia needs an r_eff arg, even if it's just ones
+    if (is.null(r_eff)) {
+      throw_loo_r_eff_warning()
+      r_eff = rep(1, dim(log_ratios)[1])
+      source <- "other"
+    }
+
+    raw_psis <- juliaCall(
+      "ParetoSmooth.psis",
+      log_ratios,
+      r_eff,
+      log_weights = TRUE  # return log weights rather than regular weights
+    )
+
+    weights <- juliaCall("getfield", raw_psis, as.name("weights"))
+    weights <- llarray_to_matrix(aperm(weights, c(2, 3, 1)))
+
+
+    pareto_k <- juliaCall("getfield", raw_psis, as.name("pareto_k"))
+    n_eff <- juliaCall("getfield", raw_psis, as.name("ess"))
+    diagnostics <- c(pareto_k = pareto_k, n_eff = n_eff)
+
+
+    r_eff <- juliaCall("getfield", raw_psis, as.name("r_eff"))
+    tail_len <- juliaCall("getfield", raw_psis, as.name("tail_len"))
+    S <- juliaCall("getfield", raw_psis, as.name("posterior_sample_size"))
+    N <- juliaCall("getfield", raw_psis, as.name("data_size"))
+    dims <- list(S=S, N=N)
+
+
+    output <- structure(
+      list(log_weights = weights, diagnostics = nlist(pareto_k, n_eff)),
+      norm_const_log = 0,  # Julia normalizes automatically
+      tail_len = tail_len,
+      r_eff = r_eff,
+      dims = nlist(S, N),
+      method = "psis",
+      class = c("psis", "importance_sampling", "list")
+    )
+    return(output)
+}
+
 #' @noRd
 #' @seealso importance_sampling_object
 psis_object <-
@@ -149,12 +220,12 @@ psis_object <-
            pareto_k,
            tail_len,
            r_eff) {
-    importance_sampling_object(unnormalized_log_weights = unnormalized_log_weights,
-                               pareto_k = pareto_k,
-                               tail_len = tail_len,
-                               r_eff = r_eff,
-                               method = "psis")
-  }
+  importance_sampling_object(unnormalized_log_weights = unnormalized_log_weights,
+                             pareto_k = pareto_k,
+                             tail_len = tail_len,
+                             r_eff = r_eff,
+                             method = "psis")
+}
 
 
 #' @noRd

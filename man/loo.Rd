@@ -18,7 +18,8 @@ loo(x, ...)
   r_eff = NULL,
   save_psis = FALSE,
   cores = getOption("mc.cores", 1),
-  is_method = c("psis", "tis", "sis")
+  is_method = c("psis", "tis", "sis"),
+  julia = getOption("loo.julia", FALSE)
 )
 
 \method{loo}{matrix}(
@@ -27,7 +28,8 @@ loo(x, ...)
   r_eff = NULL,
   save_psis = FALSE,
   cores = getOption("mc.cores", 1),
-  is_method = c("psis", "tis", "sis")
+  is_method = c("psis", "tis", "sis"),
+  julia = getOption("loo.julia", FALSE)
 )
 
 \method{loo}{`function`}(
@@ -100,6 +102,11 @@ are implemented:
 \code{sqrt(S)}, where \code{S} is the number of posterior draws.
 \item \code{\link[=sis]{"sis"}}: Standard Importance Sampling (SIS).
 }}
+
+\item{julia}{Should LOO use an implementation of PSIS in Julia to speed up
+calculations? This defaults to the option \code{loo.julia} which can be set for
+an entire R session by \code{\link{options(loo.julia = BOOL)}}.Currently defaults to
+\code{loo.julia}, and \code{FALSE} if \code{loo.julia} is not set.}
 
 \item{data, draws, ...}{For the \code{loo.function()} method and the \code{loo_i()}
 function, these are the data, posterior draws, and other arguments to pass
