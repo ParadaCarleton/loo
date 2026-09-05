@@ -5,90 +5,42 @@
 #' opportunities for model stacking or expansion.
 #'
 #' @param y A vector of observations. See Details.
-#' @param psis_object_1,psis_object_2 If using loo version 2.0.0 or greater,
-#' an object returned by the `[loo::psis()]` function (or by the
-#' `[loo::loo()]` function with argument `save_psis` set to `TRUE`).
+#' @param loo_1,loo_2 Objects returned by [loo()].
 #' @param group A grouping variable (a vector or factor) the same length
-#' as `y`. Each value in group is interpreted as the group level pertaining
-#' to the corresponding value of `y`. If `FALSE`, ignored.
-#' @param outlier_thresh Flag values when the difference in the ELPD exceeds
-#' this threshold. Defaults to `NULL`, in which case no values are flagged.
-#' @param size,alpha,jitter Passed to `[ggplot2::geom_point()]` to control
-#' aesthetics. `size` and `alpha` are passed to to the `size` and `alpha`
-#' arguments of `[ggplot2::geom_jitter()]` to control the appearance of
-#' points. `jitter` will jitter variables along the x axis only.
+#'   as `y`. Each value in group is interpreted as the group level pertaining
+#'   to the corresponding value of `y`.
+#' @param size,alpha Point size and opacity passed to [ggplot2::geom_jitter()].
+#' @param jitter Amount of horizontal jitter passed as the `width` argument
+#'   to [ggplot2::geom_jitter()].
 #' @param sort_by_group Sort observations by `group`, then plot against an
-#' arbitrary index. Plotting by index can be useful when categories have
-#' very different sample sizes.
+#'   arbitrary index. Plotting by index can be useful when categories have
+#'   very different sample sizes.
 #'
 #' @template bayesvis-reference
 #'
 #' @return A [ggplot2::ggplot()] object.
 #'
 #' @examples
-#' cbPalette <- c("#636363", "#E69F00", "#56B4E9", "#009E73",
-#'                "#F0E442", "#0072B2","#CC79A7")
+#' log_lik <- example_loglik_matrix()
 #'
-#' # Plot using groups from WHO
-#' plot_loo_difference(factor(GM@data$super_region_name), loo3, loo2,
-#'              group = GM@data$super_region_name, alpha = 0.5,
-#'              jitter = c(0.45, 0.2)
-#'              ) +
-#'              xlab("Region") + scale_colour_manual(values=cbPalette)
+#' shift <- seq(-0.5, 0.5, length.out = ncol(log_lik))
+#' log_lik_2 <- sweep(log_lik, 2, shift, FUN = "+")
 #'
-#' # Plot using groups identified with clustering
-#' plot_loo_difference(factor(GM@data$cluster_region), loo3, loo2,
-#'              group = GM@data$super_region_name, alpha = 0.5,
-#'              jitter = c(0.45, 0.2)
-#'              ) +
-#'              xlab("Cluster Group") + scale_colour_manual(values=cbPalette)
+#' loo_1 <- loo(log_lik)
+#' loo_2 <- loo(log_lik_2)
 #'
-#' # Plot using an index variable to reduce crowding
-#' plot_loo_difference(1:2980, loo3, loo2, group = GM@data$super_region_name,
-#'              alpha = 0.5, sort_by_group = TRUE
-#'              ) +
-#'              xlab("Index") + scale_colour_manual(values=cbPalette)
-#'
-#'
-#' # Example using kid IQ Dataset with a continuous predictor
-#' data(kidiq)
-#'
-#' t_prior <- student_t(df = 10, location = 0, scale = 0.5)
-#' coef_prior <- student_t(df = 10, location = 0.5, scale = 0.25)
-#' kidiq$kid_std <- (kidiq$kid_score - 100) / 15
-#' kidiq$mom_std <- (kidiq$mom_iq - 100) / 15
-#' kidiq$age_std <- (kidiq$mom_age - mean(kidiq$mom_age)) / sd(kidiq$mom_age)
-#' kidiq$hs_cent <- kidiq$mom_hs - mean(kidiq$mom_hs)
-#'
-#' coFit <- stan_glm(kid_std ~ hs_cent, data = kidiq,
-#'                   family = gaussian(), prior = coef_prior,
-#'                   prior_intercept = t_prior,
-#'                   seed = 1776, chains = 2
+#' plot_loo_difference(
+#'   seq_len(ncol(log_lik)),
+#'   loo_1,
+#'   loo_2
 #' )
-#' iqFit <- stan_glm(kid_std ~ mom_std + hs_cent, data = kidiq,
-#'                   family = gaussian(),
-#'                   prior = coef_prior, prior_intercept = t_prior,
-#'                   seed = 1776, chains = 2
-#' )
-#'
-#' coLoo <- loo(iqFit, save_psis = TRUE)
-#' iqLoo <- loo(coFit, save_psis = TRUE)
-#'
-#' plot_loo_difference(kidiq$mom_iq, coLoo, iqLoo, group = kidiq$mom_hs,
-#'              alpha = 0.5, jitter = c(0.1, 0.1)
-#'              ) +
-#'   ggplot2::geom_smooth() +
-#'   ggplot2::xlab("IQ of Mother") +
-#'   ggplot2::scale_colour_manual(values=cbPalette)
-#'
 #' @export
 plot_loo_difference <-
   function(
     y,
-    psis_object_1,
-    psis_object_2,
+    loo_1,
+    loo_2,
     group = NULL,
-    outlier_thresh = NULL,
     size = 1,
     alpha = 1,
     jitter = 0,
@@ -101,13 +53,37 @@ plot_loo_difference <-
       )
     }
 
-    elpd_diff <- psis_object_1$pointwise[, "elpd_loo"] -
-      psis_object_2$pointwise[, "elpd_loo"]
+    checkmate::assert_class(loo_1, "loo")
+    checkmate::assert_class(loo_2, "loo")
+
+    elpd_1 <- pointwise(loo_1, "elpd_loo")
+    elpd_2 <- pointwise(loo_2, "elpd_loo")
+
+    checkmate::assert_true(length(elpd_1) == length(elpd_2))
+
+    checkmate::assert_vector(
+      y,
+      len = length(elpd_1)
+    )
+
+    if (!is.null(group)) {
+      checkmate::assert_vector(
+        group,
+        len = length(y)
+      )
+    }
+
+    checkmate::assert_number(
+      jitter,
+      lower = 0
+    )
+
+    elpd_diff <- elpd_1 - elpd_2
 
     if (sort_by_group) {
-      if (identical(group, NULL) || !identical(y, seq_along(y))) {
+      if (is.null(group) || !identical(y, seq_along(y))) {
         stop(
-          "sort_by_group should only be used for grouping categorical 
+          "`sort_by_group` should only be used for grouping categorical 
              variables, then plotting them with an arbitrary index. You can
              create such an index using `1:length(data)`.
              "
@@ -122,46 +98,28 @@ plot_loo_difference <-
     plot <- ggplot2::ggplot(mapping = ggplot2::aes(y, elpd_diff)) +
       ggplot2::geom_hline(yintercept = 0) +
       ggplot2::labs(
-        x = if (sort_by_group) "y" else "Index",
-        y = expression(ELPD[i][1] - ELPD[i][2]),
-        color = "Groups"
+        x = if (sort_by_group) "Index" else "y",
+        y = expression(ELPD[i][1] - ELPD[i][2])
       )
 
     if (is.null(group)) {
-      # Don't color by group if no groups are passed
       plot <- plot +
         ggplot2::geom_jitter(
-          width = jitter[1],
-          height = jitter[2],
+          width = jitter,
+          height = 0,
           alpha = alpha,
           size = size
         )
     } else {
-      # If group is passed, use color
       plot <- plot +
         ggplot2::geom_jitter(
           ggplot2::aes(color = factor(group)),
-          width = jitter[1],
-          height = jitter[2],
+          width = jitter,
+          height = 0,
           alpha = alpha,
           size = size
-        )
-    }
-
-    if (!identical(outlier_thresh, NULL)) {
-      # Flag outliers
-      is_outlier <- elpd_diff > outlier_thresh
-      index <- seq_along(y)
-      outlier_labs <- index[is_outlier]
-
-      plot <- plot +
-        ggplot2::annotate(
-          "text",
-          x = y[is_outlier],
-          y = elpd_diff[outlier_labs],
-          label = outlier_labs,
-          size = 4
-        )
+        ) +
+        ggplot2::labs(color = "Groups")
     }
 
     plot
