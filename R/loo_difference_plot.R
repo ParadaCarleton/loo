@@ -2,13 +2,14 @@
 #'
 #' The LOO difference plot shows how the ELPD of two different models
 #' changes when a predictor is varied. This can be useful for identifying
-#' opportunities for model stacking or expansion.
+#' opportunities for model stacking or expansion. Pointwise differences
+#' are computed as `loo_1 - loo_2`, so positive values indicate better
+#' predictive performance for `loo_1`.
 #'
-#' @param y A vector of observations. See Details.
+#' @param y A vector of observations.
 #' @param loo_1,loo_2 Objects returned by [loo()].
-#' @param group A grouping variable (a vector or factor) the same length
-#'   as `y`. Each value in group is interpreted as the group level pertaining
-#'   to the corresponding value of `y`.
+#' @param group An optional grouping variable with the same length as `y`.
+#'   Points are colored according to group membership.
 #' @param size,alpha Point size and opacity passed to [ggplot2::geom_jitter()].
 #' @param jitter Amount of horizontal jitter passed as the `width` argument
 #'   to [ggplot2::geom_jitter()].
@@ -16,14 +17,21 @@
 #'   and the x-axis is replaced by a sequential index. The supplied `y` values
 #'   are therefore not used as x coordinates. Plotting by index can be useful
 #'   when categories have very different sample sizes.
+#' @param label_threshold Optional nonnegative threshold for labeling
+#'   observations. Observations for which the absolute pointwise ELPD
+#'   difference exceeds this value are labeled. If `NULL`, no observations
+#'   are labeled.
+#' @param labels Optional vector of labels with the same length as `y`, used
+#'   for observations selected by `label_threshold`. If `NULL`, observation
+#'   indices are used.
 #'
 #' @template bayesvis-reference
 #'
 #' @return A [ggplot2::ggplot()] object.
 #'
 #' @examples
+#' # Artificial example
 #' log_lik <- example_loglik_matrix()
-#'
 #' shift <- seq(-0.5, 0.5, length.out = ncol(log_lik))
 #' log_lik_2 <- sweep(log_lik, 2, shift, FUN = "+")
 #'
@@ -35,6 +43,26 @@
 #'   loo_1,
 #'   loo_2
 #' )
+#'
+#' # Label observations with large pointwise ELPD differences
+#' plot_loo_difference(
+#'   seq_len(ncol(log_lik)),
+#'   loo_1,
+#'   loo_2,
+#'   label_threshold = 0.3
+#' )
+#'
+#' # Create interspersed groups, then sort them in the plot
+#' group <- rep(c("A", "A", "A", "B"), length.out = ncol(log_lik))
+#'
+#' plot_loo_difference(
+#'   seq_len(ncol(log_lik)),
+#'   loo_1,
+#'   loo_2,
+#'   group = group,
+#'   sort_by_group = TRUE
+#' )
+#'
 #' @export
 plot_loo_difference <-
   function(
@@ -45,7 +73,9 @@ plot_loo_difference <-
     size = 1,
     alpha = 1,
     jitter = 0,
-    sort_by_group = FALSE
+    sort_by_group = FALSE,
+    label_threshold = NULL,
+    labels = NULL
   ) {
     if (!requireNamespace("ggplot2", quietly = TRUE)) {
       stop(
@@ -55,29 +85,41 @@ plot_loo_difference <-
     }
 
     checkmate::assert_flag(sort_by_group)
-    checkmate::assert_class(loo_1, "loo")
-    checkmate::assert_class(loo_2, "loo")
+    loo_compare_checks(nlist(loo_1, loo_2))
 
     elpd_1 <- pointwise(loo_1, "elpd_loo")
     elpd_2 <- pointwise(loo_2, "elpd_loo")
 
-    if (length(elpd_1) != length(elpd_2)) {
-      stop(
-        "`loo_1` and `loo_2` must contain the same number of observations.",
-        call. = FALSE
-      )
-    }
-
-    checkmate::assert_vector(
+    checkmate::assert_atomic_vector(
       y,
       len = length(elpd_1)
     )
 
     if (!is.null(group)) {
-      checkmate::assert_vector(
+      checkmate::assert_atomic_vector(
         group,
+        len = length(y),
+        any.missing = FALSE
+      )
+    }
+
+    if (!is.null(label_threshold)) {
+      checkmate::assert_number(
+        label_threshold,
+        lower = 0,
+        finite = TRUE
+      )
+    }
+
+    if (!is.null(labels)) {
+      checkmate::assert_atomic_vector(
+        labels,
         len = length(y)
       )
+    }
+
+    if (!is.null(label_threshold) && is.null(labels)) {
+      labels <- seq_along(y)
     }
 
     elpd_diff <- elpd_1 - elpd_2
@@ -93,6 +135,11 @@ plot_loo_difference <-
       ordering <- order(group)
       elpd_diff <- elpd_diff[ordering]
       group <- group[ordering]
+
+      if (!is.null(labels)) {
+        labels <- labels[ordering]
+      }
+
       y <- seq_along(elpd_diff)
     }
 
@@ -100,8 +147,13 @@ plot_loo_difference <-
       y = y,
       elpd_diff = elpd_diff
     )
+
     if (!is.null(group)) {
       plot_data$group <- factor(group)
+    }
+
+    if (!is.null(labels)) {
+      plot_data$labels <- labels
     }
 
     plot <- ggplot2::ggplot(
@@ -110,8 +162,8 @@ plot_loo_difference <-
     ) +
       ggplot2::geom_hline(yintercept = 0) +
       ggplot2::labs(
-        x = if (sort_by_group) "Index" else "y",
-        y = expression(ELPD[i][1] - ELPD[i][2])
+        x = if (sort_by_group) "Index" else NULL,
+        y = "Pointwise ELPD Difference (loo_1 - loo_2)"
       )
 
     if (is.null(group)) {
@@ -131,7 +183,22 @@ plot_loo_difference <-
           alpha = alpha,
           size = size
         ) +
-        ggplot2::labs(color = "Groups")
+        ggplot2::labs(color = "Group")
+    }
+
+    if (!is.null(label_threshold)) {
+      label_data <- plot_data[
+        abs(plot_data$elpd_diff) > label_threshold,
+        ,
+        drop = FALSE
+      ]
+
+      plot <- plot +
+        ggplot2::geom_text(
+          data = label_data,
+          ggplot2::aes(label = labels),
+          vjust = -0.5
+        )
     }
 
     plot
