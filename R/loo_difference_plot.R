@@ -54,13 +54,19 @@ plot_loo_difference <-
       )
     }
 
+    checkmate::assert_flag(sort_by_group)
     checkmate::assert_class(loo_1, "loo")
     checkmate::assert_class(loo_2, "loo")
 
     elpd_1 <- pointwise(loo_1, "elpd_loo")
     elpd_2 <- pointwise(loo_2, "elpd_loo")
 
-    checkmate::assert_true(length(elpd_1) == length(elpd_2))
+    if (length(elpd_1) != length(elpd_2)) {
+      stop(
+        "`loo_1` and `loo_2` must contain the same number of observations.",
+        call. = FALSE
+      )
+    }
 
     checkmate::assert_vector(
       y,
@@ -73,11 +79,6 @@ plot_loo_difference <-
         len = length(y)
       )
     }
-
-    checkmate::assert_number(
-      jitter,
-      lower = 0
-    )
 
     elpd_diff <- elpd_1 - elpd_2
 
@@ -95,7 +96,18 @@ plot_loo_difference <-
       y <- seq_along(elpd_diff)
     }
 
-    plot <- ggplot2::ggplot(mapping = ggplot2::aes(y, elpd_diff)) +
+    plot_data <- data.frame(
+      y = y,
+      elpd_diff = elpd_diff
+    )
+    if (!is.null(group)) {
+      plot_data$group <- factor(group)
+    }
+
+    plot <- ggplot2::ggplot(
+      data = plot_data,
+      mapping = ggplot2::aes(x = y, y = elpd_diff)
+    ) +
       ggplot2::geom_hline(yintercept = 0) +
       ggplot2::labs(
         x = if (sort_by_group) "Index" else "y",
@@ -113,7 +125,7 @@ plot_loo_difference <-
     } else {
       plot <- plot +
         ggplot2::geom_jitter(
-          ggplot2::aes(color = factor(group)),
+          ggplot2::aes(color = group),
           width = jitter,
           height = 0,
           alpha = alpha,
