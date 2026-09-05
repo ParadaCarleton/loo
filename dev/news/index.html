@@ -11,11 +11,11 @@
 
     <a class="navbar-brand me-2" href="../index.html">
       <!-- Add Stan logo -->
-      <picture><source type="image/svg+xml" srcset="../logo.svg"><img src="../logo.png" class="stan-logo" alt="Stan blue hex logo"></source></picture>
+      <img src="../logo.svg" class="stan-logo" alt="Stan blue hex logo">
       loo
     </a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.9.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.10.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,17 +63,29 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="loo-development-version">loo (development version)<a class="anchor" aria-label="anchor" href="#loo-development-version"></a></h2>
-<div class="section level3">
-<h3 id="breaking-changes-development-version">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-development-version"></a></h3>
-<ul><li>
-<code><a href="../reference/loo_compare.html">loo_compare()</a></code> now returns a data frame instead of a matrix and has additional columns. Code that relies on matrix-specific behaviour will need to be updated accordingly by <a href="https://github.com/jgabry" class="external-link">@jgabry</a>, <a href="https://github.com/avehtari" class="external-link">@avehtari</a>, <a href="https://github.com/florence-bockting" class="external-link">@florence-bockting</a> in <a href="https://github.com/stan-dev/loo/issues/300" class="external-link">#300</a></li>
+<ul><li>Update user messages in <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> by <a href="https://github.com/ishaan-arora-1" class="external-link">@ishaan-arora-1</a>, <a href="https://github.com/florence-bockting" class="external-link">@florence-bockting</a> in <a href="https://github.com/stan-dev/loo/issues/328" class="external-link">#328</a>.</li>
 </ul></div>
-<div class="section level3">
-<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
-<ul><li>
-<code><a href="../reference/loo_compare.html">loo_compare()</a></code> output now includes additional columns: <code>p_worse</code>, <code>diag_diff</code>, and <code>diag_elpd</code>, providing richer diagnostics for model comparison by <a href="https://github.com/florence-bockting" class="external-link">@florence-bockting</a> in <a href="https://github.com/stan-dev/loo/issues/300" class="external-link">#300</a></li>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.10.1" id="loo-2101">loo 2.10.1<a class="anchor" aria-label="anchor" href="#loo-2101"></a></h2><p class="text-muted">CRAN release: 2026-07-24</p>
+<ul><li>Revert behavior of internal <code>psis_smooth_tail()</code> function that led to several failing tests not caught by CRAN reverse dependency checks. This change should not directly affect individual users. by <a href="https://github.com/VisruthSK" class="external-link">@VisruthSK</a> in <a href="https://github.com/stan-dev/loo/issues/381" class="external-link">#381</a></li>
+<li>
+<code><a href="../reference/loo_compare.html">print.compare.loo()</a></code> regains a <code>simplify</code> argument for showing the full comparison table with <code>simplify = FALSE</code> by <a href="https://github.com/florence-bockting" class="external-link">@florence-bockting</a> in <a href="https://github.com/stan-dev/loo/issues/383" class="external-link">#383</a>.</li>
 </ul></div>
-</div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.10.0" id="loo-2100">loo 2.10.0<a class="anchor" aria-label="anchor" href="#loo-2100"></a></h2><p class="text-muted">CRAN release: 2026-06-26</p>
+<ul><li>Updates to <code>loo_compare</code> output by <a href="https://github.com/jgabry" class="external-link">@jgabry</a>, <a href="https://github.com/avehtari" class="external-link">@avehtari</a>, <a href="https://github.com/florence-bockting" class="external-link">@florence-bockting</a> in <a href="https://github.com/stan-dev/loo/issues/300" class="external-link">#300</a>:
+<ul><li>new output columns <code>p_worse</code>, <code>diag_diff</code>, <code>diag_elpd</code>
+</li>
+<li>returned object is now a <code>data.frame</code> instead of a <code>matrix</code>
+</li>
+</ul></li>
+<li>Add new <code>kfold.print</code> method by <a href="https://github.com/florence-bockting" class="external-link">@florence-bockting</a> in <a href="https://github.com/stan-dev/loo/issues/342" class="external-link">#342</a></li>
+<li>Add touchstone performance benchmarks by <a href="https://github.com/VisruthSK" class="external-link">@VisruthSK</a> in <a href="https://github.com/stan-dev/loo/issues/352" class="external-link">#352</a></li>
+<li>Use <code><a href="https://mc-stan.org/posterior/reference/gpdfit.html" class="external-link">posterior::gpdfit</a></code> and <code><a href="https://mc-stan.org/posterior/reference/qgeneralized_pareto.html" class="external-link">posterior::qgeneralized_pareto</a></code> by <a href="https://github.com/avehtari" class="external-link">@avehtari</a> in <a href="https://github.com/stan-dev/loo/issues/305" class="external-link">#305</a></li>
+<li>Fix bug in IS method error message + documentation typos by <a href="https://github.com/ishaan-arora-1" class="external-link">@ishaan-arora-1</a> in <a href="https://github.com/stan-dev/loo/issues/326" class="external-link">#326</a></li>
+<li>Shortened <code><a href="../reference/loo_subsample.html">?loo_subsample</a></code> title and improved description by <a href="https://github.com/vinniott" class="external-link">@vinniott</a> in <a href="https://github.com/stan-dev/loo/issues/339" class="external-link">#339</a></li>
+<li>Add AI contribution policy by <a href="https://github.com/florence-bockting" class="external-link">@florence-bockting</a> in <a href="https://github.com/stan-dev/loo/issues/361" class="external-link">#361</a></li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.9.0" id="loo-290">loo 2.9.0<a class="anchor" aria-label="anchor" href="#loo-290"></a></h2><p class="text-muted">CRAN release: 2025-12-23</p>
 <ul><li>Avoid under and overflows in stacking by <a href="https://github.com/avehtari" class="external-link">@avehtari</a> in <a href="https://github.com/stan-dev/loo/issues/273" class="external-link">#273</a></li>
@@ -306,7 +318,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

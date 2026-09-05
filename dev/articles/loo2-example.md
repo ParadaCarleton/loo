@@ -149,7 +149,7 @@ print(loo1)
 ```
 
 
-    Computed from 4000 by 262 log-likelihood matrix.
+    Computed from 4000 posterior draws and 262 log-likelihood terms.
 
              Estimate     SE
     elpd_loo  -6247.5  727.9
@@ -264,7 +264,7 @@ print(loo2)
 ```
 
 
-    Computed from 4000 by 262 log-likelihood matrix.
+    Computed from 4000 posterior draws and 262 log-likelihood terms.
 
              Estimate   SE
     elpd_loo   -895.6 37.7
@@ -324,7 +324,7 @@ print(loo2)
 ```
 
 
-    Computed from 4000 by 262 log-likelihood matrix.
+    Computed from 4000 posterior draws and 262 log-likelihood terms.
 
              Estimate   SE
     elpd_loo   -895.5 37.7
@@ -380,11 +380,16 @@ loo_compare(loo1, loo2)
 
 The difference in ELPD is much larger than several times the estimated
 standard error of the difference again indicating that the
-negative-binomial model is xpected to have better predictive performance
-than the Poisson model. However, according to the LOO-PIT checks there
-is still some misspecification, and a reasonable guess is that a hurdle
-or zero-inflated model would be an improvement (we leave that for
-another case study).
+negative-binomial model is expected to have better predictive
+performance than the Poisson model. However, according to the LOO-PIT
+checks there is still some misspecification, and a reasonable guess is
+that a hurdle or zero-inflated model would be an improvement (we leave
+that for another case study).
+
+The `p_worse`, `diag_diff`, and `diag_elpd` columns are new as of
+version 2.10. For details on interpreting them see ?`loo-glossary` and
+the case study [Uncertainty in Bayesian LOO-CV Model
+Comparison](https://users.aalto.fi/~ave/casestudies/LOO_uncertainty/loo_uncertainty.html).
 
   
 

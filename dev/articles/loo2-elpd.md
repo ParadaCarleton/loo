@@ -121,18 +121,15 @@ stanmodel <- stan_model(model_code = stancode)
 
     Trying to compile a simple C file
 
-    Running /opt/R/4.6.0/lib/R/bin/R CMD SHLIB foo.c
+    Running /opt/R/4.6.1/lib/R/bin/R CMD SHLIB foo.c
     using C compiler: ‘gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0’
-    gcc -std=gnu2x -I"/opt/R/4.6.0/lib/R/include" -DNDEBUG   -I"/home/runner/work/_temp/Library/Rcpp/include/"  -I"/home/runner/work/_temp/Library/RcppEigen/include/"  -I"/home/runner/work/_temp/Library/RcppEigen/include/unsupported"  -I"/home/runner/work/_temp/Library/BH/include" -I"/home/runner/work/_temp/Library/StanHeaders/include/src/"  -I"/home/runner/work/_temp/Library/StanHeaders/include/"  -I"/home/runner/work/_temp/Library/RcppParallel/include/"  -I"/home/runner/work/_temp/Library/rstan/include" -DEIGEN_NO_DEBUG  -DBOOST_DISABLE_ASSERTS  -DBOOST_PENDING_INTEGER_LOG2_HPP  -DSTAN_THREADS  -DUSE_STANC3 -DSTRICT_R_HEADERS  -DBOOST_PHOENIX_NO_VARIADIC_EXPRESSION  -D_HAS_AUTO_PTR_ETC=0  -include '/home/runner/work/_temp/Library/StanHeaders/include/stan/math/prim/fun/Eigen.hpp'  -D_REENTRANT -DRCPP_PARALLEL_USE_TBB=1   -I/usr/local/include    -fpic  -g -O2  -c foo.c -o foo.o
-    In file included from /home/runner/work/_temp/Library/RcppEigen/include/Eigen/Core:19,
-                     from /home/runner/work/_temp/Library/RcppEigen/include/Eigen/Dense:1,
-                     from /home/runner/work/_temp/Library/StanHeaders/include/stan/math/prim/fun/Eigen.hpp:22,
-                     from <command-line>:
-    /home/runner/work/_temp/Library/RcppEigen/include/Eigen/src/Core/util/Macros.h:679:10: fatal error: cmath: No such file or directory
-      679 | #include <cmath>
-          |          ^~~~~~~
+    gcc -std=gnu2x -I"/opt/R/4.6.1/lib/R/include" -DNDEBUG   -I"/home/runner/work/_temp/Library/Rcpp/include/"  -I"/home/runner/work/_temp/Library/RcppEigen/include/"  -I"/home/runner/work/_temp/Library/RcppEigen/include/unsupported"  -I"/home/runner/work/_temp/Library/BH/include" -I"/home/runner/work/_temp/Library/StanHeaders/include/src/"  -I"/home/runner/work/_temp/Library/StanHeaders/include/"  -I"/home/runner/work/_temp/Library/RcppParallel/include/" -DRCPP_PARALLEL_USE_TBB=1 -DTBB_INTERFACE_NEW -I/home/runner/work/_temp/Library/RcppParallel/include -I"/home/runner/work/_temp/Library/rstan/include" -DEIGEN_NO_DEBUG  -DBOOST_DISABLE_ASSERTS  -DBOOST_PENDING_INTEGER_LOG2_HPP  -DSTAN_THREADS  -DUSE_STANC3 -DSTRICT_R_HEADERS  -DBOOST_PHOENIX_NO_VARIADIC_EXPRESSION  -D_HAS_AUTO_PTR_ETC=0  -include '/home/runner/work/_temp/Library/StanHeaders/include/stan/math/prim/fun/Eigen.hpp'  -D_REENTRANT -DRCPP_PARALLEL_USE_TBB=1   -I/usr/local/include    -fpic  -g -O2  -c foo.c -o foo.o
+    In file included from <command-line>:
+    /home/runner/work/_temp/Library/StanHeaders/include/stan/math/prim/fun/Eigen.hpp:3:10: fatal error: stdexcept: No such file or directory
+        3 | #include <stdexcept>
+          |          ^~~~~~~~~~~
     compilation terminated.
-    make: *** [/opt/R/4.6.0/lib/R/etc/Makeconf:190: foo.o] Error 1
+    make: *** [/opt/R/4.6.1/lib/R/etc/Makeconf:190: foo.o] Error 1
 
 ``` r
 
@@ -149,6 +146,13 @@ log likelihood of the test data.
 ``` r
 
 gen_test <- gqs(stanmodel, draws = as.matrix(fit), data= data_test)
+```
+
+
+     Elapsed Time: 0.013 seconds (Generated Quantities)
+
+``` r
+
 log_pd <- extract_log_lik(gen_test)
 ```
 
@@ -163,7 +167,7 @@ using [`elpd()`](https://mc-stan.org/loo/dev/reference/elpd.md).
 ```
 
 
-    Computed from 4000 by 52 log-likelihood matrix using the generic elpd function
+    Computed from 4000 posterior draws and 52 log-likelihood terms using the generic elpd function.
 
          Estimate    SE
     elpd  -1741.0 290.7
@@ -230,6 +234,36 @@ for(k in 1:10){
 }
 ```
 
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
+
+     Elapsed Time: 0.007 seconds (Generated Quantities)
+
 ### Computing K-fold elpd:
 
 Now we evaluate the predictive performance of the model on the 10 folds
@@ -241,7 +275,7 @@ using [`elpd()`](https://mc-stan.org/loo/dev/reference/elpd.md).
 ```
 
 
-    Computed from 4000 by 262 log-likelihood matrix using the generic elpd function
+    Computed from 4000 posterior draws and 262 log-likelihood terms using the generic elpd function.
 
          Estimate     SE
     elpd  -5560.1  730.0

@@ -33,11 +33,11 @@
 
     <a class="navbar-brand me-2" href="../index.html">
       <!-- Add Stan logo -->
-      <picture><source type="image/svg+xml" srcset="../logo.svg"><img src="../logo.png" class="stan-logo" alt="Stan blue hex logo"></source></picture>
+      <img src="../logo.svg" class="stan-logo" alt="Stan blue hex logo">
       loo
     </a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.9.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">2.10.1.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -96,7 +96,7 @@
                         <h4 data-toc-skip class="author">Aki Vehtari and
 Jonah Gabry</h4>
             
-            <h4 data-toc-skip class="date">2026-06-08</h4>
+            <h4 data-toc-skip class="date">2026-09-05</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/stan-dev/loo/blob/master/vignettes/loo2-example.Rmd" class="external-link"><code>vignettes/loo2-example.Rmd</code></a></small>
       <div class="d-none name"><code>loo2-example.Rmd</code></div>
@@ -244,7 +244,7 @@ the <code>loo</code> object.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">loo1</span><span class="op">)</span></span></code></pre></div>
 <pre><code>
-Computed from 4000 by 262 log-likelihood matrix.
+Computed from 4000 posterior draws and 262 log-likelihood terms.
 
          Estimate     SE
 elpd_loo  -6247.5  727.9
@@ -341,7 +341,7 @@ allows the conditional mean and variance of <span class="math inline">\(y\)</spa
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">loo2</span><span class="op">)</span></span></code></pre></div>
 <pre><code>
-Computed from 4000 by 262 log-likelihood matrix.
+Computed from 4000 posterior draws and 262 log-likelihood terms.
 
          Estimate   SE
 elpd_loo   -895.6 37.7
@@ -387,7 +387,7 @@ Fitting model 1 out of 1 (leaving out observation 93)</code></pre>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">loo2</span><span class="op">)</span></span></code></pre></div>
 <pre><code>
-Computed from 4000 by 262 log-likelihood matrix.
+Computed from 4000 posterior draws and 262 log-likelihood terms.
 
          Estimate   SE
 elpd_loo   -895.5 37.7
@@ -431,11 +431,16 @@ See ?`loo-glossary` (sections `diag_diff` and `diag_elpd`)
 or https://mc-stan.org/loo/reference/loo-glossary.html.</code></pre>
 <p>The difference in ELPD is much larger than several times the
 estimated standard error of the difference again indicating that the
-negative-binomial model is xpected to have better predictive performance
-than the Poisson model. However, according to the LOO-PIT checks there
-is still some misspecification, and a reasonable guess is that a hurdle
-or zero-inflated model would be an improvement (we leave that for
-another case study).</p>
+negative-binomial model is expected to have better predictive
+performance than the Poisson model. However, according to the LOO-PIT
+checks there is still some misspecification, and a reasonable guess is
+that a hurdle or zero-inflated model would be an improvement (we leave
+that for another case study).</p>
+<p>The <code>p_worse</code>, <code>diag_diff</code>, and
+<code>diag_elpd</code> columns are new as of version 2.10. For details
+on interpreting them see ?<code>loo-glossary</code> and the case study
+<a href="https://users.aalto.fi/~ave/casestudies/LOO_uncertainty/loo_uncertainty.html" class="external-link">Uncertainty
+in Bayesian LOO-CV Model Comparison</a>.</p>
 <p><br></p>
 </div>
 </div>
@@ -472,7 +477,7 @@ Research</em>, 25(72):1-58. <a href="https://jmlr.org/papers/v25/19-556.html" cl
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>
