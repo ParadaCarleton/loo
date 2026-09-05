@@ -10,13 +10,14 @@
 #' @param loo_1,loo_2 Objects returned by [loo()].
 #' @param group An optional grouping variable with the same length as `y`.
 #'   Points are colored according to group membership.
-#' @param size,alpha Point size and opacity passed to [ggplot2::geom_jitter()].
-#' @param jitter Amount of horizontal jitter passed as the `width` argument
-#'   to [ggplot2::geom_jitter()].
+#' @param size,alpha Point size and opacity passed to [ggplot2::geom_point()].
+#' @param jitter Amount of horizontal jitter passed to
+#'   [ggplot2::position_jitter()].
 #' @param sort_by_group If `TRUE`, observations are ordered by `group`
 #'   and the x-axis is replaced by a sequential index. The supplied `y` values
 #'   are therefore not used as x coordinates. Plotting by index can be useful
-#'   when categories have very different sample sizes.
+#'   when categories have very different sample sizes. To control the group
+#'   order, supply `group` as a factor with levels in the desired order.
 #' @param label_threshold Optional nonnegative threshold for labeling
 #'   observations. Observations for which the absolute pointwise ELPD
 #'   difference exceeds this value are labeled. If `NULL`, no observations
@@ -87,12 +88,12 @@ plot_loo_difference <-
     checkmate::assert_flag(sort_by_group)
     loo_compare_checks(nlist(loo_1, loo_2))
 
-    elpd_1 <- pointwise(loo_1, "elpd_loo")
-    elpd_2 <- pointwise(loo_2, "elpd_loo")
+    # elpd_diffs(a, b) computes b - a
+    elpd_diff <- elpd_diffs(loo_2, loo_1)
 
     checkmate::assert_atomic_vector(
       y,
-      len = length(elpd_1)
+      len = length(elpd_diff)
     )
 
     if (!is.null(group)) {
@@ -122,8 +123,6 @@ plot_loo_difference <-
       labels <- seq_along(y)
     }
 
-    elpd_diff <- elpd_1 - elpd_2
-
     if (sort_by_group) {
       if (is.null(group)) {
         stop(
@@ -152,9 +151,19 @@ plot_loo_difference <-
       plot_data$group <- factor(group)
     }
 
-    if (!is.null(labels)) {
-      plot_data$labels <- labels
+    if (!is.null(label_threshold)) {
+      plot_data$labels <- ifelse(
+        abs(plot_data$elpd_diff) > label_threshold,
+        as.character(labels),
+        ""
+      )
     }
+
+    jitter_position <- ggplot2::position_jitter(
+      width = jitter,
+      height = 0,
+      seed = 1
+    )
 
     plot <- ggplot2::ggplot(
       data = plot_data,
@@ -168,18 +177,16 @@ plot_loo_difference <-
 
     if (is.null(group)) {
       plot <- plot +
-        ggplot2::geom_jitter(
-          width = jitter,
-          height = 0,
+        ggplot2::geom_point(
+          position = jitter_position,
           alpha = alpha,
           size = size
         )
     } else {
       plot <- plot +
-        ggplot2::geom_jitter(
+        ggplot2::geom_point(
           ggplot2::aes(color = group),
-          width = jitter,
-          height = 0,
+          position = jitter_position,
           alpha = alpha,
           size = size
         ) +
@@ -187,16 +194,10 @@ plot_loo_difference <-
     }
 
     if (!is.null(label_threshold)) {
-      label_data <- plot_data[
-        abs(plot_data$elpd_diff) > label_threshold,
-        ,
-        drop = FALSE
-      ]
-
       plot <- plot +
         ggplot2::geom_text(
-          data = label_data,
           ggplot2::aes(label = labels),
+          position = jitter_position,
           vjust = -0.5
         )
     }
