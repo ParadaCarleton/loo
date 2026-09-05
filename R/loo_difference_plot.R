@@ -16,16 +16,14 @@
 #' @param size,alpha,jitter Passed to `[ggplot2::geom_point()]` to control
 #' aesthetics. `size` and `alpha` are passed to to the `size` and `alpha`
 #' arguments of `[ggplot2::geom_jitter()]` to control the appearance of
-#' points. `jitter` can be either a number or a vector of numbers.
-#' Passing a single number will jitter variables along the x axis only, while
-#' passing a vector will jitter along both axes.
+#' points. `jitter` will jitter variables along the x axis only.
 #' @param sort_by_group Sort observations by `group`, then plot against an
 #' arbitrary index. Plotting by index can be useful when categories have
 #' very different sample sizes.
 #'
-#' @template return-ggplot
-#' @template reference-vis-paper
+#' @template bayesvis-reference
 #'
+#' @return A [ggplot2::ggplot()] object.
 #'
 #' @examples
 #' cbPalette <- c("#636363", "#E69F00", "#56B4E9", "#009E73",
@@ -101,12 +99,6 @@ plot_loo_difference <-
         "Please install 'ggplot2' to use `plot_loo_difference()`.",
         call. = FALSE
       )
-    }
-
-    # Adding a 0 at the end lets users provide a single number as input.
-    # In this case, only horizontal jitter is applied.
-    if (length(jitter) == 1L) {
-      jitter <- c(jitter, 0)
     }
 
     elpd_diff <- psis_object_1$pointwise[, "elpd_loo"] -
