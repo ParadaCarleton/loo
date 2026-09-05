@@ -1,7 +1,7 @@
 #' Compare models across domains
 #'
 #' The LOO difference plot shows how the ELPD of two different models
-#' changes when a predictor is varied. This can is useful for identifying
+#' changes when a predictor is varied. This can be useful for identifying
 #' opportunities for model stacking or expansion.
 #'
 #' @param y A vector of observations. See Details.
@@ -12,9 +12,10 @@
 #' @param size,alpha Point size and opacity passed to [ggplot2::geom_jitter()].
 #' @param jitter Amount of horizontal jitter passed as the `width` argument
 #'   to [ggplot2::geom_jitter()].
-#' @param sort_by_group Sort observations by `group`, then plot against an
-#'   arbitrary index. Plotting by index can be useful when categories have
-#'   very different sample sizes.
+#' @param sort_by_group If `TRUE`, observations are ordered by `group`
+#'   and the x-axis is replaced by a sequential index. The supplied `y` values
+#'   are therefore not used as x coordinates. Plotting by index can be useful
+#'   when categories have very different sample sizes.
 #'
 #' @template bayesvis-reference
 #'
@@ -81,18 +82,17 @@ plot_loo_difference <-
     elpd_diff <- elpd_1 - elpd_2
 
     if (sort_by_group) {
-      if (is.null(group) || !identical(y, seq_along(y))) {
+      if (is.null(group)) {
         stop(
-          "`sort_by_group` should only be used for grouping categorical 
-             variables, then plotting them with an arbitrary index. You can
-             create such an index using `1:length(data)`.
-             "
+          "`group` must be supplied when `sort_by_group = TRUE`.",
+          call. = FALSE
         )
       }
 
       ordering <- order(group)
       elpd_diff <- elpd_diff[ordering]
       group <- group[ordering]
+      y <- seq_along(elpd_diff)
     }
 
     plot <- ggplot2::ggplot(mapping = ggplot2::aes(y, elpd_diff)) +
