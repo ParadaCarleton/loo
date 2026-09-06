@@ -75,6 +75,8 @@ of predictive distributions or pseudo-BMA weighting.
   [`stacking_weights()`](https://mc-stan.org/loo/dev/reference/loo_model_weights.md)
   [`pseudobma_weights()`](https://mc-stan.org/loo/dev/reference/loo_model_weights.md)
   : Model averaging/weighting via stacking or pseudo-BMA weighting
+- [`plot_loo_difference()`](https://mc-stan.org/loo/dev/reference/plot_loo_difference.md)
+  : Compare models across domains
 
 ## Helper functions for K-fold CV
 
